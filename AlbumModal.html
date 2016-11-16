@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		.texto{
+			width: 30%;
+			padding: 10px 20px;
+			border: 2px solid black;
+		}
+		.button{
+			background-color: black; 
+		    border: none;
+		    color: white;
+		    padding: 12px 25px;
+		    text-align: center;
+		    text-decoration: none;
+		    display: inline-block;
+		    font-size: 15px;
+		    margin: 4px 2px;
+		    cursor: pointer;
+		    -webkit-transition-duration: 0.4s; 
+		    transition-duration: 0.4s;
+		}
+		.button:hover{
+			box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+		}
+		#button{
+			text-align: center;
+		}
+		.fundo{
+			background-color: gray;
+			padding: 15px;
+		}
+		#users{
+			
+		}
+		#users div{
+			float: left;
+			padding: 15px;
+			margin: 5px;
+			border-style: ridge;
+			border-color: black;
+		}
+		#users div img{
+			width: 250px;
+			height: 250px;
+
+		}
+		#search{
+			text-align: center;
+		}
+		p {
+			text-align: center;
+		}
+		.modal{
+			display: none;
+			position: fixed;
+			z-index: 1;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgb(0,0,0);
+			background-color: rgba(0,0,0,0.4);
+		}
+		.modal-content{
+			background-color: #fefefe;
+			margin: 15% auto;
+			padding: 20px;
+			border-style: solid;
+    		border-width: 2px 10px 4px 20px;
+			width: 80%;
+		}
+		.close{
+			color: #aaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+		.close:hover,
+		.close:focus{
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
+		}
+	</style>
+	<script>
+		function carregarUsuarios(str) {
+			removerElementos();
+			if(str.length==0){
+				return;
+			}
+			var xhttp= new XMLHttpRequest();
+			xhttp.open("GET", 
+				         "https://api.github.com/search/users?q="+str,
+				         false);
+			xhttp.send();
+			var target= document.querySelector("#users");
+			if(xhttp.status==200){
+				
+				var json= JSON.parse(xhttp.responseText);
+				var usuarios = json.items;
+
+				for(i in usuarios){
+					var user= usuarios[i];
+					var div = criarElemento(user.avatar_url, user.login);
+					target.appendChild(div);
+				}
+
+			}
+		}
+		
+		function press(){
+			if(event.keyCode==13){
+			  carregarUsuarios(document.querySelector('#query').value); 
+			}
+		}
+
+		function criarElemento(url, user){
+			var div = document.createElement("div");
+			var imagem = document.createElement("img");
+			imagem.src=url;
+			div.appendChild(imagem);
+			
+			
+			var modal = document.getElementById('myModal');
+			var inner = document.getElementById('jobs');
+			inner.innerHTML = "";
+			
+			div.onclick = function() {
+				console.log(user);	
+				var xhttp1= new XMLHttpRequest();
+				xhttp1.open("GET", "https://api.github.com/users/"+user+"/orgs", false);
+				xhttp1.send();
+				
+				inner.innerHTML = "";
+				if(xhttp1.status==200){
+						var json1 = JSON.parse(xhttp1.responseText);
+						
+						if(json1[0] === undefined){
+							inner.innerHTML = "<p> Não há empregos! <p>";
+						}else{
+							inner.innerHTML = "Empregos:\n"
+							for(j in json1){
+								var job = "<p>" +json1[j].login + "</p>";
+								inner.innerHTML += job;
+							}
+						}					
+				}
+				modal.style.display = "block";				
+			}					
+			
+			
+			return div;
+		}
+
+		function removerElementos(){
+			var div_users= document.querySelector("#users");
+			while(div_users.firstChild){
+				div_users.removeChild(div_users.firstChild);
+			}
+		}
+	</script>
+</head>
+<body>
+	<div class="fundo">
+		<div id="button">
+			<input class="texto" type="text" name="query" id="query" placeholder="Digite aqui...">
+			<button class="button" value="Pesquisar" onClick="carregarUsuarios(document.querySelector('#query').value);">Pesquisar</button>
+		</div>
+	</div>
+	<br>
+	<div id="users">
+		
+	</div>
+
+	<div id="myModal" class="modal">
+		<div class="modal-content">
+			<span onclick="document.getElementById('myModal').style.display='none'" 
+		  class="close">X</span>
+			<span class="descrip"></span>
+			<div id="jobs" class="w3-container">
+			
+			</div>
+		</div>
+	</div>
+</body>
+</html>
